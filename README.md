@@ -71,6 +71,7 @@ Discuss your results with the international collaborator and document your findi
 │   └── 2_modelling
 │   └── 3_evaluation
 │   └── 4_visualizations
+│   └── 5_miscellaneous
 ├── reports                         - contains figures and texts for the final report
 │   └── figures
 └── scripts                         - contains python scripts (including helper functions)
