@@ -37,3 +37,7 @@ class ADNIPreprocessing():
         p.random_contrast(probability=0.3, min_factor=0.8, max_factor=1.2)
 
         p.sample(n_samples, multi_threaded=False)
+
+    def mean_center_images(self):
+        # center image with "mean-image" or "per-channel-mean"
+        raise NotImplementedError

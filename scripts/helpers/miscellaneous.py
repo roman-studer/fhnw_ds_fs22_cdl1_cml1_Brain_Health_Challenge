@@ -1,5 +1,10 @@
 import yaml
 import os
+import nibabel as nib
+import shutil
+import tqdm
+import glob
+from pathlib import Path
 
 
 def get_config() -> dict:
@@ -7,32 +12,71 @@ def get_config() -> dict:
     Returns a dictionary of the config.yml file in root folder
     :return: dictionary of config.yml
     """
-    with open('../../CONFIG.yml', 'r') as f:
-        c = yaml.safe_load(f)
-    return c
+    try:
+        with open('../../CONFIG.yml', 'r') as f:
+            c = yaml.safe_load(f)
+        return c
+
+    except:
+        raise FileNotFoundError(
+            'Could not find CONFIG.yml file. Try importing it manually')
 
 
-def flatten_data(raw_data_dir=None):
-    if raw_data_dir is None:
-        try:
-            raw_data_dir = get_config()["RAW_DATA_DIR"]
-        except:
-            raise ValueError(
-                'Could not find CONFIG.yml. Provide a path to the file with the "raw_data_path" parameter')
+def flatten_data() -> None:
+    """
+    Copies all .nii files in CONFIG["RAW_DATA_DIR"] to CONFIG["FLATTENED_DATA_DIR"]
+    :return: None
+    """
+    try:
+        config = get_config()
+    except:
+        raise ValueError(
+            'Could not find CONFIG.yml. Provide a path to the file with the "raw_data_path" parameter')
 
-    raise NotImplementedError
+    raw_data_dir = config["RAW_DATA_DIR"]
+    flattened_data_dir = config["FLATTENED_DATA_DIR"]
 
-def get_file_names(path: str, suffix: str = None):
+    nii_files = glob.glob('../../' + raw_data_dir + '**/*.nii', recursive=True)
+    for file in tqdm(nii_files):
+        shutil.copy2(Path(file), flattened_data_dir)
+
+
+def get_file_names(path: str, suffix: str = None, return_all: bool = False):
     """
     path: str, path to search from
     suffix: str, filters for files with provided suffix (e.g. ".nii")
     :return: A list of files with suffix "suffix" in provided path (including substructure)
     """
     filenames = []
-    for _, _, files in os.walk(path):
+    for root, dirs, files in os.walk(path):
         if suffix:
             for name in files:
                 if name.endswith(suffix):
                     filenames.append(name)
 
+    if return_all:
+        return (root, dirs, filenames)
+
     return filenames
+
+
+def get_nii(img_path):
+    """
+    Function to load a 'nii' or 'nii.gz' file, The function returns
+    everyting needed to save another 'nii' or 'nii.gz'
+    in the same dimensional space, i.e. the affine matrix and the header
+
+    Parameters
+    ----------
+
+    img_path: string
+    String with the path of the 'nii' or 'nii.gz' image file name.
+
+    Returns
+    -------
+    Three element, the first is a numpy array of the image values,
+    the second is the affine transformation of the image, and the
+    last one is the header of the image.
+    """
+    nimg = nib.load(self._filename(img_path))
+    return nimg.get_data(), nimg.affine, nimg.header

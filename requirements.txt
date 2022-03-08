@@ -1,0 +1,6 @@
+matplotlib~=3.4.2
+yaml~=0.2.5
+pyyaml~=5.4.1
+nibabel~=3.2.2
+augmentor~=0.2.9
+tqdm~=4.62.2
