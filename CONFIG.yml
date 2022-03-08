@@ -1,14 +1,14 @@
 # paths
 RAW_DATA_DIR:       "data/raw/"
 PROCESSED_DATA_DIR: "data/processed/"
-FLATTENED_DATA_DIR: "data/raw/flattened/" # contains all .nii files from RAW_DATA_DIR
+FLATTENED_DATA_DIR: "data/raw/flattened" # contains all .nii files from RAW_DATA_DIR
 
 # ml_settings
 DEVICE:             "gpu"
 
 # plot settings
 COLOR_SEQUENTIAL:   "inferno" # matplotlib color map (used for heatmaps)
-COLOR_DISCRETE:     "Paired"  # matplotlib discrete set of colors (for statistical plots, i.e. bar plots)
+COLOR_DISCRETE:     "Paired"  # matplotlib discrete set of colors (for statistical plots:  i.e. bar plots)
 
 # diverse
 RANDOM_STATE:       "42" # what else ;)
