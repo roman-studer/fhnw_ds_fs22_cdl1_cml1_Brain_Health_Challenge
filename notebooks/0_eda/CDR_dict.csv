@@ -1,0 +1,21 @@
+Phase,Phase
+ID,Record ID
+RID,Participant roster ID
+SITEID,Site ID
+VISCODE,Visit code
+VISCODE2,Translated visit code
+USERDATE,Date record created
+USERDATE2,Date record last updated
+EXAMDATE,Examination Date
+CDSOURCE,Information Source: 1=Participant Visit;2=Telephone Call
+CDVERSION,1=CDR version 1- Full interview with informant and participant ;3=CDR version 2- Full interview with only informant;2=CDR version 3- Abbreviated interview with only informant
+CDMEMORY,Memory score: 0.0=0.0;0.5=0.5;1.0=1.0;2.0=2.0;3.0=3.0
+CDORIENT,Orientation Score
+CDJUDGE,Judgment and Problem Solving Score
+CDCOMMUN,Community Affairs Score
+CDHOME,Home and Hobbies Score
+CDCARE,Personal Care Score
+CDGLOBAL,Global Clinical Dementia Rating
+CDRSB,CDR-SB
+CDSOB,Sum of Boxes
+update_stamp,update stamp
