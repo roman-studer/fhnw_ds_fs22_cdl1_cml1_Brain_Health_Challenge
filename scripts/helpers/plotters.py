@@ -1,4 +1,6 @@
 import matplotlib.pyplot as plt
+import seaborn as sns
+
 
 
 def plot_wrapper(plot_object, title, subtitle, xlabel, ylabel, xtick_rotation=None):
