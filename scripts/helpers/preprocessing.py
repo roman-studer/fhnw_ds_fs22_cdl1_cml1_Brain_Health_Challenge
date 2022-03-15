@@ -1,5 +1,6 @@
 import Augmentor
 import yaml
+import numpy as np
 
 class ADNIPreprocessing():
 
@@ -18,12 +19,12 @@ class ADNIPreprocessing():
 
     def get_by_range(self, range):
         raise NotImplementedError
-
+   
     def image_augmentation(self, path_folder: str, n_samples: int):
         """
         Taken (and adapted) from Susanne Suter.
         Returns n_samples of augmented images based on the reference images in path_folder
-
+        
         :param path_folder: str, reference images
         :param n_samples: int, number of samples to create
         :return: n_samples of images
@@ -41,3 +42,9 @@ class ADNIPreprocessing():
     def mean_center_images(self):
         # center image with "mean-image" or "per-channel-mean"
         raise NotImplementedError
+        
+    def normalise(image):
+        # normalise and clip images -1000 to 800
+        np_img = image
+        np_img = np.clip(np_img, -1000., 800.).astype(np.float32)
+        return np_img
