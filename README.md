@@ -81,3 +81,26 @@ Discuss your results with the international collaborator and document your findi
 └── requirements.txt
 
 ```
+
+## Setup
+
+### Flattening the data structure
+The image data is extremely nested and thus inconvenient to handle. The information of the names of the subfolders
+are contained in the filename itself. Which renders the subfolders unnecessary.
+
+We have written some functions to flatten the data structure:
+1. Make sure the raw data is in the project folder `data/raw/data`
+2. Run the notebook `notebooks/5_miscellaneous/data_extraction.ipynb`. Make sure to uncomment the line
+`# copy_to_flat()` in the last cell. 
+
+Note that this creates a copy of the data. Additional space on disk is required. After that one can theoretically disperse of the raw, nested data.
+
+### Get train- and testset annotations
+We provide functionality to split the data into a train and into testset by creating two CSV-files:
+`test_labels.csv` and `train_labels.csv` in the `data/annotations`-folder. 
+To create the split (always stratified) with the proportions you desire run the `notebooks/1_preprocessing/Train_Test_Splitter.ipynb`-notebook.
+
+You can adapt the split in the following way:
+ - "proportion": This argument defines the proportion of data in the trainset (therefore has to be between 0 and 1)
+ - "group_identifier": A column in the input dataframe. Allows us to split the data based on the values of a column
+ - "save_files": If true, the above mentioned csv-files will be created. If false, the test- and trainset dataframe will be returned.
