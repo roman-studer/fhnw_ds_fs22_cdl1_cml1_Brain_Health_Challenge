@@ -59,6 +59,9 @@ def get_file_names(path: str, suffix: str = None, return_all: bool = False):
 
     return filenames
 
+def get_nii_filenames(path: str):
+    return glob.glob('../../' + path + '**/*.nii', recursive=True)
+
 
 def get_nii(img_path):
     """
@@ -78,5 +81,5 @@ def get_nii(img_path):
     the second is the affine transformation of the image, and the
     last one is the header of the image.
     """
-    nimg = nib.load(self._filename(img_path))
+    nimg = nib.load(img_path)
     return nimg.get_data(), nimg.affine, nimg.header
