@@ -2,6 +2,7 @@ import torch
 import numpy as np
 import pandas as pd
 
+
 # Define Train Function
 def train(train_loader, model, optimizer, max_epoch, device, summary_writer = None, val_loader = None):
     torch.backends.cudnn.benchmark = True
@@ -58,7 +59,7 @@ def train(train_loader, model, optimizer, max_epoch, device, summary_writer = No
     torch.cuda.empty_cache()
     return pd.DataFrame(metrics_tracker)
 
-def feed_train(model, loss_fn, optimizer, train_loader)
+def feed_train(model, loss_fn, optimizer, train_loader):
     # Per Epoch: Train Model 
     for idx, (imgs, test_results, captions) in enumerate(train_loader):
         with torch.autocast():
@@ -85,7 +86,7 @@ def feed_train(model, loss_fn, optimizer, train_loader)
             
     return total_loss
 
-def feed_val(model, loss_fn, val_loader)
+def feed_val(model, loss_fn, val_loader):
     # Per Epoch: Train Model   
     for idx, (imgs, test_results, captions) in enumerate(val_loader):
         with torch.autocast():

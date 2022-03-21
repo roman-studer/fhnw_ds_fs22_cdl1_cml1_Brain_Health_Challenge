@@ -24,7 +24,7 @@ def get_config() -> dict:
 
 def flatten_data() -> None:
     """
-    Copies all .nii files in CONFIG["RAW_DATA_DIR"] to CONFIG["FLATTENED_DATA_DIR"]
+    Copies all .nii files in CONFIG["RAW_DATA_DIR"] to CONFIG["FLATTENED_FOLDER"]
     :return: None
     """
     try:
@@ -34,7 +34,7 @@ def flatten_data() -> None:
             'Could not find CONFIG.yml. Provide a path to the file with the "raw_data_path" parameter')
 
     raw_data_dir = config["RAW_DATA_DIR"]
-    flattened_data_dir = config["FLATTENED_DATA_DIR"]
+    flattened_data_dir = config["FLATTENED_FOLDER"]
 
     nii_files = glob.glob('../../' + raw_data_dir + '**/*.nii', recursive=True)
     for file in tqdm(nii_files):

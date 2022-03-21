@@ -2,9 +2,12 @@
 RAW_DATA_DIR:       "data/raw/"
 PROCESSED_DATA_DIR: "data/processed/"
 FLATTENED_DATA_DIR: "data/raw/flattened" # contains all .nii files from RAW_DATA_DIR
+SERIALIZED_MODELS:  "models/trained_models/"
+METRICS_DIR:        "models/trained_history/"
 
 # ml_settings
-DEVICE:             "gpu"
+DEVICE:             "cuda"
+
 
 # plot settings
 COLOR_SEQUENTIAL:   "inferno" # matplotlib color map (used for heatmaps)

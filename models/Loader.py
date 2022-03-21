@@ -2,6 +2,8 @@ import torchio as tio
 import torch
 import numpy as np
 from torch.utils.data import Dataset
+import pandas as pd
+import os
 
 class MRIDataset(Dataset):
     """
@@ -50,9 +52,16 @@ class MRIDataset(Dataset):
         Parameters:
             idx (int): index to image
         """
+        # fixme should be handled in another way. maybe in configuration file?
+        idx_to_label = {
+            'CN': 0,
+            'MCI': 1,
+            'AD': 2
+        }
+
         test_results = self.test_results[["CDMEMORY", "CDORIENT", "CDJUDGE", "CDCOMMUN", "CDHOME", "CDCARE", "CDGLOBAL"]].sample(n=1)
         test_results = torch.from_numpy(test_results.to_numpy().astype(np.float32))
-        
+
         img = tio.ScalarImage(self.image_path + str(self.images[idx]))
         
         #get image and caption by id
