@@ -5,6 +5,12 @@ FLATTENED_DATA_DIR: "data/raw/flattened/" # contains all .nii files from RAW_DAT
 SERIALIZED_MODELS:  "models/trained_models/"
 METRICS_DIR:        "models/trained_history/"
 ANNOTATIONS_DIR:    "data/annotations/"
+CDR_DIR:            "data/tabular_data/tabular_data/CDR.csv"
+GDSCALE_DIR:        "data/tabular_data/tabular_data/GDSCALE.csv"
+MMSE_DIR:           "data/tabular_data/tabular_data/MMSE.csv"
+MOCA_DIR:           "data/tabular_data/tabular_data/MOCA.csv"
+NEUROBAT_DIR:       "data/tabular_data/tabular_data/NEUROBAT.csv"
+PTDEMOG_DIR:        "data/tabular_data/tabular_data/PTDEMOG.csv"
 
 # ml_settings
 DEVICE:             "cuda"
