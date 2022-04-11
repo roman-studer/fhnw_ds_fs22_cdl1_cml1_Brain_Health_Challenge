@@ -23,7 +23,7 @@ class MRIDataset(Dataset):
     ----------
     forward(images): takes images and does forward feed calculation
     """
-    def __init__(self, image_path, test_path, annotation_path, transform=None):
+    def __init__(self, dataset_path, transform=None):
         """
         Parameters:
             image_path (string): Path to the image folder
@@ -32,44 +32,45 @@ class MRIDataset(Dataset):
             transform (object, callable): Optional transform to be applied
                 on a sample.
         """
-        self.image_path = image_path
-        self.annotation_path = annotation_path
-        self.test_path = test_path
+        self.dataset_path = dataset_path
         self.transform = transform
+        # fixme should be handled in another way. maybe in configuration file?
+        self.idx_to_label = {
+            'CN': 0,
+            'MCI': 1,
+            'AD': 2
+        }
         
-        self.labels = pd.read_csv(self.annotation_path)
-        self.images = os.listdir(self.image_path)
-        self.test_results = pd.read_csv(self.test_path)
+        
+        self.df = pd.read_csv(self.dataset_path)
+        
+        # fix this while generating train/test split
+        self.df.dropna(subset=['filename'], how='all', inplace=True)
 
     def __len__(self):
         """
         returns amount of images in total
         """
-        return len(self.images)
+        return len(self.df)
 
     def __getitem__(self, idx):
         """
         Parameters:
             idx (int): index to image
         """
-        # fixme should be handled in another way. maybe in configuration file?
-        idx_to_label = {
-            'CN': 0,
-            'MCI': 1,
-            'AD': 2
-        }
+        
+        #switch case for each individual cognitive test?
+        """test_results = self.test_results[["CDMEMORY", "CDORIENT", "CDJUDGE", "CDCOMMUN", "CDHOME", "CDCARE", "CDGLOBAL"]].sample(n=1)
+        test_results = torch.from_numpy(test_results.to_numpy().astype(np.float32))"""
 
-        test_results = self.test_results[["CDMEMORY", "CDORIENT", "CDJUDGE", "CDCOMMUN", "CDHOME", "CDCARE", "CDGLOBAL"]].sample(n=1)
-        test_results = torch.from_numpy(test_results.to_numpy().astype(np.float32))
-
-        img = tio.ScalarImage(self.image_path + str(self.images[idx]))
+        img = tio.ScalarImage(self.df.iloc[idx].filename)
         
         #get image and caption by id
-        labels = self.labels[self.labels["Image Data ID"] == self.images[idx].split(".")[0]].Group
-        labels = labels.map(idx_to_label)
-        labels = torch.tensor(labels.values.astype(np.float32))
+        label = self.df.iloc[idx].Group
+        label = self.idx_to_label[label]
+        label = torch.tensor(label).to(torch.float32)
         
         if self.transform is not None:
             img = self.transform(img)
 
-        return img.data, test_results, labels 
+        return {"images": img.data, "labels": label} #, test_results

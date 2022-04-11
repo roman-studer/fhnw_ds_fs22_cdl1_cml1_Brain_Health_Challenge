@@ -11,6 +11,8 @@ MMSE_DIR:           "data/tabular_data/tabular_data/MMSE.csv"
 MOCA_DIR:           "data/tabular_data/tabular_data/MOCA.csv"
 NEUROBAT_DIR:       "data/tabular_data/tabular_data/NEUROBAT.csv"
 PTDEMOG_DIR:        "data/tabular_data/tabular_data/PTDEMOG.csv"
+TRAIN_LABELS_DIR:   "data/annotations/train_labels.csv"
+TEST_LABELS_DIR:    "data/annotations/test_labels.csv"
 
 # ml_settings
 DEVICE:             "cuda"
