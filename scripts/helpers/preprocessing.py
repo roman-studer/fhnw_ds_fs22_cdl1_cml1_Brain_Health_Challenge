@@ -1,12 +1,12 @@
-import Augmentor
+#import Augmentor
 import yaml
 import numpy as np
 
 class ADNIPreprocessing():
 
-    def __init__(self, config_path: str, device='gpu',):
+    def __init__(self, config, device='gpu'):
         self._device = device
-        self._config = yaml.load(config_path)
+        self._config = config
 
     def load_train_test_set(self):
         raise NotImplementedError
@@ -45,6 +45,5 @@ class ADNIPreprocessing():
         
     def normalise(image):
         # normalise and clip images -1000 to 800
-        np_img = image
-        np_img = np.clip(np_img, -1000., 800.).astype(np.float32)
+        np_img = np.clip(image, -1000., 800.).astype(np.float32)
         return np_img

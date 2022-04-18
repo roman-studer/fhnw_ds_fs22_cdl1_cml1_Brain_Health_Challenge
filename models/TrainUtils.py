@@ -1,10 +1,13 @@
 import torch
+import torch.nn as nn
 import numpy as np
 import pandas as pd
+import time
+from ModelUtils import plot_grad_flow      
 
 
 # Define Train Function
-def train(train_loader, model, optimizer, max_epoch, device, summary_writer = None, val_loader = None):
+def train(train_loader, model, optimizer, max_epochs, device, summary_writer = None, val_loader = None):
     torch.backends.cudnn.benchmark = True
     torch.cuda.empty_cache
     
@@ -30,9 +33,7 @@ def train(train_loader, model, optimizer, max_epoch, device, summary_writer = No
         t0 = time.time()
         
         #train
-        total_loss = feed_train(model, loss_fn, optimizer, device, train_loader)
-        print("Train Epoch Finished")
-        avg_total_loss = total_loss / (idx + 1)
+        avg_total_loss = feed_train(model, loss_fn, optimizer, train_loader, device)
         
         #val
         if (val_loader is not None):
@@ -55,36 +56,41 @@ def train(train_loader, model, optimizer, max_epoch, device, summary_writer = No
             summary_writer.add_scalar("Val/Loss", avg_total_loss_val)
     
     metrics_tracker = [{'epoch': epochs_list[i], 'train_loss': train_loss_list[i], 'training_time': eta_list[i], 'val_loss': train_loss_val[i]} for i in range(max_epochs)]
-    torch.cuda.synchronize()  
+    torch.cuda.synchronize()
     torch.cuda.empty_cache()
     return pd.DataFrame(metrics_tracker)
 
-def feed_train(model, loss_fn, optimizer, train_loader):
+def feed_train(model, loss_fn, optimizer, train_loader, device):
+    total_loss = 0
     # Per Epoch: Train Model 
-    for idx, (imgs, test_results, captions) in enumerate(train_loader):
-        with torch.autocast():
-            #set model to train mode
-            model.train()
+    for idx, batch in enumerate(train_loader):
+        #with torch.autocast(device_type=device):
+        #set model to train mode
+        model.train()
 
-            imgs = imgs.to(device)
-            captions = captions.to(device)
+        imgs = batch["images"].to(device)
+        labels = batch["labels"].type(torch.LongTensor).to(device)
 
-            #send all captions but last one so that it learns to predict the end token 
-            outputs = model(imgs, test_results)
-            print(imgs.shape, test_results.shape)
-            loss = loss_fn(outputs, captions)
+        #send all captions but last one so that it learns to predict the end token 
+        outputs = model(imgs)#, labels)
+        print(outputs, labels)
+        loss = loss_fn(outputs, labels)
 
-            #loss gets updated after each batch, so a total loss is better to see if model is improving
-            total_loss += loss.item()
+        #loss gets updated after each batch, so a total loss is better to see if model is improving
+        total_loss += loss.item()
 
-            optimizer.zero_grad()
-            loss.backward(loss)
-            optimizer.step()
+        optimizer.zero_grad()
+        loss.backward(loss)
+        plot_grad_flow(model.named_parameters())
+        optimizer.step()
 
         #uncomment for more memory if needed
         #torch.cuda.empty_cache
+    
+    print("Train Epoch Finished")
+    avg_total_loss = total_loss / (idx + 1)
             
-    return total_loss
+    return avg_total_loss
 
 def feed_val(model, loss_fn, val_loader):
     # Per Epoch: Train Model   
