@@ -1,5 +1,4 @@
-from mlflow import log_metric, log_param, log_artifacts
-import mlflow
+import wandb
 import torch
 import numpy as np
 from torch.utils.data import DataLoader
@@ -14,7 +13,7 @@ from loss_functions import get_optimizer, get_criterion
 
 # import model named as Net
 from ml_models import LeNet as Net 
-
+NET = 'LeNet'
 
 def nn_train(model, device, train_dataloader, optimizer, criterion, epoch, steps_per_epoch=20):
     model.train()
@@ -23,8 +22,8 @@ def nn_train(model, device, train_dataloader, optimizer, criterion, epoch, steps
     train_total = 0
     train_correct = 0
 
-    for batch_idx, (data, target) in enumerate(train_dataloader, start=0):
-        data, target = data.to(device), target.to(device)
+    for batch_idx, data in enumerate(train_dataloader, start=0):
+        data, target = data['images'].to(device), data['labels'].to(device)
 
         optimizer.zero_grad()
 
@@ -66,7 +65,7 @@ def nn_test(net, device, test_dataloader, criterion, classes, return_prediction=
 
     with torch.no_grad():
         for data in test_dataloader:
-            inputs, labels = data[0].to(device), data[1].to(device)
+            inputs, labels = data['images'].to(device), data['labels'].to(device)
 
             outputs = net(inputs)
             test_loss += criterion(outputs, labels).item()
@@ -103,19 +102,34 @@ LEARNING_RATE = CONFIG['LEARNING_RATE']
 BATCH_SIZE = CONFIG['BATCH_SIZE']
 EPOCHS = CONFIG['EPOCHS']
 TRANSFORMER = CONFIG['TRANSFORMER']
+CRITERION = CONFIG['CRITERION']
+OPTIMIZER = CONFIG['OPTIMIZER']
 TRAIN_SET = '../' + CONFIG['TEST_LABELS_DIR']
 TEST_SET = '../' + CONFIG['TEST_LABELS_DIR']
 RAW_DATA = '../' + CONFIG['FLATTENED_DATA_DIR']
 PLOT_DIR = '../' + CONFIG['PLOT_DIR_BINARY']
 DIMENSION = CONFIG['DIMENSION']
 NSLICE = CONFIG['NSLICE']
+WANDB_USER = CONFIG['WANDB_USER']
 
-mlflow.start_run()
+wandb.init(project="mlmodels", entity="brain-health")
 
-log_param('batchsize', BATCH_SIZE)
-log_param('n_epochs', EPOCHS)
-log_param('transformer', TRANSFORMER)
-log_param('learning_rate', LEARNING_RATE)
+# wandb.init(project="mlmodels", entity=WANDB_USER,
+#          name=f'Net: {NET} Transf: {TRANSFORMER} Epochs: {EPOCHS}')
+
+wandb.define_metric("acc", summary="max")
+wandb.define_metric("loss", summary="min")
+
+wandb.config = {
+    "learning_rate": LEARNING_RATE,
+    "epochs": EPOCHS,
+    "batch_size": BATCH_SIZE,
+    "transformer": TRANSFORMER,
+    "net": NET,
+    "criterion": CRITERION,
+    "optimizer": OPTIMIZER
+}
+
 
 class_names = ['CN', 'MCI', 'AD']
 
@@ -133,16 +147,24 @@ test_dataloader = DataLoader(test_data, batch_size=BATCH_SIZE, shuffle=True)
 criterion = get_criterion()
 optimizer = get_optimizer(net, CONFIG)
 
+wandb.watch(net, log="all")
 
+print("[INFO] Started training")
 for epoch in range(EPOCHS):
     nn_train(net, device, train_dataloader, optimizer, criterion, epoch)
     nn_test(net, device, test_dataloader, criterion, class_names)
 
 y_true, _, y_proba = nn_test(net, device, test_dataloader, criterion, class_names, return_prediction=True)
 
-# log_artifacts("outputs")
+wandb.log(
+    {"roc": wandb.plot.roc_curve(np.array(y_true), np.array(y_proba), labels=class_names, classes_to_plot=None),
+     "learning_rate": LEARNING_RATE,
+     "epochs": EPOCHS,
+     "batch_size": BATCH_SIZE,
+     "transformer": TRANSFORMER,
+     "net": NET,
+     "criterion": CRITERION,
+     "optimizer": OPTIMIZER})
 
-mlflow.end_run()
-
-print("Finished Training")
-
+print("[INFO] Finished Training")
+wandb.finish()

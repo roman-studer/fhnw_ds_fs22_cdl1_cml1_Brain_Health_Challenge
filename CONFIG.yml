@@ -13,6 +13,7 @@ NEUROBAT_DIR:       "data/tabular_data/tabular_data/NEUROBAT.csv"
 PTDEMOG_DIR:        "data/tabular_data/tabular_data/PTDEMOG.csv"
 TRAIN_LABELS_DIR:   "data/annotations/train_labels.csv"
 TEST_LABELS_DIR:    "data/annotations/test_labels.csv"
+PLOT_DIR_BINARY:    "reports/plots/"
 
 # ml_settings
 DEVICE: "gpu"
@@ -20,11 +21,18 @@ TRAIN_SIZE: 0.8
 LEARNING_RATE: 0.001
 BATCH_SIZE: 16
 EPOCHS: 20
-TRANSFORMER: 'Crop'
+TRANSFORMER: "Crop"
+CRITERION: "CrossEntropy"
+OPTIMIZER: "SGD"
+WANDB_USER: "brain-health"
 
-IMAGE_WIDTH: 900
-IMAGE_HEIGHT: 900
-IMAGE_RESIZE: 254
+IMAGE_WIDTH: 900 # image width after cropping
+IMAGE_HEIGHT: 900 # image height after cropping
+IMAGE_RESIZE: 32 # Baseline LeNet
+
+# for 2d slice selection
+DIMENSION: 1 # 1 = Tranversalebene, 2 = Frontalebene, 3 = Saggitalebene
+NSLICE: "Center" # 'Center' or Int, selects a slice (or center slice) for given dimension
 
 
 # plot settings

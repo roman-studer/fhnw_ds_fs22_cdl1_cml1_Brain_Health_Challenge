@@ -1,4 +1,5 @@
 from mlflow import log_metric, log_param, log_artifacts
+import mlflow
 import torch
 import numpy as np
 from torch.utils.data import DataLoader
@@ -8,9 +9,11 @@ import sys
 sys.path.insert(0, '../scripts/')
 from helpers import miscellaneous as misc
 from helpers import preprocessing as prep
-from data_loader import CustomImageDataset
-from baseline_binary_loss import get_optimizer, get_criterion
-from baseline_binary_cnn import Net
+from data_loader import MRIDataset
+from loss_functions import get_optimizer, get_criterion
+
+# import model named as Net
+from ml_models import LeNet as Net 
 
 
 def nn_train(model, device, train_dataloader, optimizer, criterion, epoch, steps_per_epoch=20):
@@ -100,31 +103,35 @@ LEARNING_RATE = CONFIG['LEARNING_RATE']
 BATCH_SIZE = CONFIG['BATCH_SIZE']
 EPOCHS = CONFIG['EPOCHS']
 TRANSFORMER = CONFIG['TRANSFORMER']
-TRAIN_SET = CONFIG['DATA_DIR_TRAINSET']
-TEST_SET = CONFIG['DATA_DIR_TESTSET']
-RAW_DATA = CONFIG['DATA_DIR_FLATTENED']
-PLOT_DIR = CONFIG['PLOT_DIR_BINARY']
+TRAIN_SET = '../' + CONFIG['TEST_LABELS_DIR']
+TEST_SET = '../' + CONFIG['TEST_LABELS_DIR']
+RAW_DATA = '../' + CONFIG['FLATTENED_DATA_DIR']
+PLOT_DIR = '../' + CONFIG['PLOT_DIR_BINARY']
+DIMENSION = CONFIG['DIMENSION']
+NSLICE = CONFIG['NSLICE']
 
-log_param('batchsize', BATCHSIZE)
+mlflow.start_run()
+
+log_param('batchsize', BATCH_SIZE)
 log_param('n_epochs', EPOCHS)
 log_param('transformer', TRANSFORMER)
 log_param('learning_rate', LEARNING_RATE)
 
-class_names = ['Healthy', 'Fracture']
+class_names = ['CN', 'MCI', 'AD']
 
 device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 
 net = Net().to(device)
 test_transform, train_transform = prep.get_transformer(TRANSFORMER)
 
-train_data = CustomImageDataset(annotations_file=TRAIN_SET, img_dir=RAW_DATA, transform=train_transform)
-test_data = CustomImageDataset(annotations_file=TEST_SET, img_dir=RAW_DATA, transform=test_transform)
+train_data = MRIDataset(dataset_path=TRAIN_SET, transform=train_transform, dimension=DIMENSION, nslice=NSLICE)
+test_data = MRIDataset(dataset_path=TEST_SET, transform=test_transform, dimension=DIMENSION, nslice=NSLICE)
 
 train_dataloader = DataLoader(train_data, batch_size=BATCH_SIZE, shuffle=True)
 test_dataloader = DataLoader(test_data, batch_size=BATCH_SIZE, shuffle=True)
 
 criterion = get_criterion()
-optimizer = get_optimizer(net, wandb.config)
+optimizer = get_optimizer(net, CONFIG)
 
 
 for epoch in range(EPOCHS):
@@ -134,6 +141,8 @@ for epoch in range(EPOCHS):
 y_true, _, y_proba = nn_test(net, device, test_dataloader, criterion, class_names, return_prediction=True)
 
 # log_artifacts("outputs")
+
+mlflow.end_run()
 
 print("Finished Training")
 
