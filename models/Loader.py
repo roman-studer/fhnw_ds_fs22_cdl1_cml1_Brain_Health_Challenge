@@ -1,9 +1,11 @@
 import torchio as tio
 import torch
+import torch.nn as nn
 import numpy as np
 from torch.utils.data import Dataset
 import pandas as pd
 import os
+from sklearn.utils import shuffle
 
 class MRIDataset(Dataset):
     """
@@ -23,7 +25,7 @@ class MRIDataset(Dataset):
     ----------
     forward(images): takes images and does forward feed calculation
     """
-    def __init__(self, dataset_path, transform=None):
+    def __init__(self, dataset_path, shuffle_ = True, transform=None):
         """
         Parameters:
             image_path (string): Path to the image folder
@@ -43,6 +45,9 @@ class MRIDataset(Dataset):
         
         
         self.df = pd.read_csv(self.dataset_path)
+        
+        if shuffle_ == True:
+            self.df = shuffle(self.df)
         
         # fix this while generating train/test split
         self.df.dropna(subset=['filename'], how='all', inplace=True)
@@ -68,9 +73,9 @@ class MRIDataset(Dataset):
         #get image and caption by id
         label = self.df.iloc[idx].Group
         label = self.idx_to_label[label]
-        label = torch.tensor(label).to(torch.float32)
+        label = nn.functional.one_hot(torch.tensor(label), num_classes = 3).to(torch.float32)
         
         if self.transform is not None:
             img = self.transform(img)
 
-        return {"images": img.data, "labels": label} #, test_results
+        return {"images": img.data, "labels": label } #, test_results
