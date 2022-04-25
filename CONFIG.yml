@@ -15,7 +15,16 @@ TRAIN_LABELS_DIR:   "data/annotations/train_labels.csv"
 TEST_LABELS_DIR:    "data/annotations/test_labels.csv"
 
 # ml_settings
-DEVICE:             "cuda"
+DEVICE: "gpu"
+TRAIN_SIZE: 0.8
+LEARNING_RATE: 0.001
+BATCH_SIZE: 16
+EPOCHS: 20
+TRANSFORMER: 'Crop'
+
+IMAGE_WIDTH: 900
+IMAGE_HEIGHT: 900
+IMAGE_RESIZE: 254
 
 
 # plot settings

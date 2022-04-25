@@ -1,0 +1,35 @@
+# paths
+RAW_DATA_DIR:       "data/raw/"
+PROCESSED_DATA_DIR: "data/processed/"
+FLATTENED_DATA_DIR: "data/raw/flattened/" # contains all .nii files from RAW_DATA_DIR
+SERIALIZED_MODELS:  "models/trained_models/"
+METRICS_DIR:        "models/trained_history/"
+ANNOTATIONS_DIR:    "data/annotations/"
+CDR_DIR:            "data/tabular_data/tabular_data/CDR.csv"
+GDSCALE_DIR:        "data/tabular_data/tabular_data/GDSCALE.csv"
+MMSE_DIR:           "data/tabular_data/tabular_data/MMSE.csv"
+MOCA_DIR:           "data/tabular_data/tabular_data/MOCA.csv"
+NEUROBAT_DIR:       "data/tabular_data/tabular_data/NEUROBAT.csv"
+PTDEMOG_DIR:        "data/tabular_data/tabular_data/PTDEMOG.csv"
+TRAIN_LABELS_DIR:   "data/annotations/train_labels.csv"
+TEST_LABELS_DIR:    "data/annotations/test_labels.csv"
+
+# ml_settings
+DEVICE: "gpu"
+TRAIN_SIZE: 0.8
+LEARNING_RATE: 0.001
+BATCH_SIZE: 16
+EPOCHS: 20
+TRANSFORMER: 'Crop'
+
+IMAGE_WIDTH: 900
+IMAGE_HEIGHT: 900
+IMAGE_RESIZE: 254
+
+
+# plot settings
+COLOR_SEQUENTIAL:   "bone" # matplotlib color map (used for heatmaps)
+COLOR_DISCRETE:     "Paired"  # matplotlib discrete set of colors (for statistical plots:  i.e. bar plots)
+
+# diverse
+RANDOM_STATE:       "42" # what else ;)
