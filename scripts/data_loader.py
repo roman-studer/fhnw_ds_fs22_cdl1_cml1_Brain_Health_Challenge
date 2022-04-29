@@ -69,29 +69,33 @@ class MRIDataset(Dataset):
         #switch case for each individual cognitive test?
         """test_results = self.test_results[["CDMEMORY", "CDORIENT", "CDJUDGE", "CDCOMMUN", "CDHOME", "CDCARE", "CDGLOBAL"]].sample(n=1)
         test_results = torch.from_numpy(test_results.to_numpy().astype(np.float32))"""
-
-        img = tio.ScalarImage('../' + self.df.iloc[idx].filename)
+        
+        img = tio.ScalarImage("../" + self.df.iloc[idx].filename)
         
         #get image and caption by id
         label = self.df.iloc[idx].Group
         label = self.idx_to_label[label]
         label = nn.functional.one_hot(torch.tensor(label), num_classes = 3).to(torch.float32)
-            
+
         if self.nslice == 'Center':
             self.nslice = img.data.size(self.dimension)//2
             
         if self.nslice:
             if self.dimension == 1:
                 assert img.data.size()[1] >= self.nslice, f'[WARN] Nslice is too large. Max allowed: {img.data.size()[1]}'
-                img.data = img.data[:, self.nslice, :, :]
+                img = img.data[:, self.nslice, :, :]
             elif self.dimension == 2:
                 assert img.data.size()[2] >= self.nslice, f'[WARN] Nslice is too large. Max allowed: {img.data.size()[2]}'
-                img.data = img.data[:, :, self.nslice, :]
+                img = img.data[:, :, self.nslice, :]
             elif self.dimension == 3:
                 assert img.data.size()[3] >= self.nslice, f'[WARN] Nslice is too large. Max allowed: {img.data.size()[3]}'
-                img.data = img.data[:, :, :, self.nslice]
+                img = img.data[:, :, :, self.nslice]
                 
         if self.transform is not None:
-            img = self.transform(img)
+            try:
+                img = self.transform(img.unsqueeze(dim=3))
+                img = img[:,:,:,0]
+            except FloatingPointError:
+                print(f"img {self.df.iloc[idx].filename} couldn't be transformed, floating point error: overflow encountered in float_scalars")
 
-        return {"images": img.data, "labels": label } #, test_results
+        return {"images": img, "labels": label } #, test_results

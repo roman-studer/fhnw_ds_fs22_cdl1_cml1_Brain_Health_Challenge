@@ -21,7 +21,8 @@ TRAIN_SIZE: 0.8
 LEARNING_RATE: 0.001
 BATCH_SIZE: 16
 EPOCHS: 20
-TRANSFORMER: "Crop"
+NUM_WORKERS: 12 #don't set this to a higher number than train or test size
+TRANSFORMER: "Test"
 CRITERION: "CrossEntropy"
 OPTIMIZER: "SGD"
 WANDB_USER: "brain-health"

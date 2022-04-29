@@ -15,14 +15,16 @@ def get_transformer(transformer_name):
         return _crop_transformer(), _crop_transformer()
     elif transformer_name == 'Crop_Augment':
         return _crop_transformer(), _crop_augment_transformer()
-
     else:
         raise ValueError('Transformer is invalid or non-existent')
 
 
 def _test_transformer():
-    return transforms.Compose(
-        [transforms.NormalizationTransform((0.0, 0.0, 0.0), (1.0, 1.0, 1.0))])
+    return transforms.Compose([
+        transforms.RescaleIntensity((-1, 1)),
+        transforms.Resample((1,1,1)),
+        transforms.Resize((150,150,1)),
+    ])
 
 # for 2d images
 def _crop_transformer():
