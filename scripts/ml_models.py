@@ -6,7 +6,32 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.lines import Line2D
 import torch.nn.functional as F
+import monai
 
+import sys
+sys.path.insert(0, '../scripts/')
+from helpers import miscellaneous as misc
+
+def get_model():
+    CONFIG = misc.get_config()
+    MODEL_NAME = CONFIG['MODEL']
+    
+    if MODEL_NAME == 'TestCNN':
+        return TestCNN()
+    elif MODEL_NAME == 'EncoderCNN':
+        return EncoderCNN()
+    elif MODEL_NAME == 'CognitiveTestMLP':
+        return CognitiveTestMLP()
+    elif MODEL_NAME == 'FusionModel':
+        return FusionModel()
+    elif MODEL_NAME == 'LeNet':
+        return LeNet()
+    elif MODEL_NAME == 'BaselineNet':
+        return BaselineNet()
+    
+    else:
+        print('[WARN] Unknown model selected')
+    
 
 # TODO: Add more parameters to Models so that it's configurable
 class EncoderCNN(nn.Module):
@@ -209,3 +234,35 @@ class BaselineNet(nn.Module):
         x = F.relu(self.fc2(x))
         x = self.fc3(x)
         return x
+    
+    
+class TestCNN(nn.Module):
+    
+    def __init__(self):
+        super().__init__()
+        self.conv = monai.networks.blocks.Convolution(
+        dimensions=2,
+        in_channels=1,
+        out_channels=1,
+        adn_ordering="ADN",
+        act=("prelu", {"init": 0.2}),
+        dropout=0.1
+        )
+
+        self.cnn_to_mlp = torch.nn.Sequential(
+          torch.nn.Flatten(1, -1),
+          torch.nn.Linear(150*150, 32),
+          torch.nn.ReLU(),
+          torch.nn.Linear(32, 3),  
+          torch.nn.Softmax(dim=1)
+        )
+
+        
+    def forward(self, x):
+        model = torch.nn.Sequential(
+            self.conv,
+            self.cnn_to_mlp
+        )
+        
+        return model(x)
+        

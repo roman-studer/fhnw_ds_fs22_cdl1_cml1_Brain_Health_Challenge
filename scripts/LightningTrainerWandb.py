@@ -15,6 +15,7 @@ from pytorch_lightning.loggers import WandbLogger
 import torchmetrics
 import monai
 from datetime import datetime
+import ml_models
 
 #---------------------------------------
 
@@ -119,6 +120,7 @@ class Model(pl.LightningModule):
         torch.onnx.export(self.net, dummy_input, model_filename)
         wandb.save(model_filename)
 
+        
 #add XAI elements here for XAI after each epoch
 class ImagePredictionLogger(pl.Callback):
     def __init__(self, val_samples, num_samples=4):
@@ -146,12 +148,13 @@ if __name__ == '__main__':
     samples = data.val_dataloader()
     
     early_stopping = pl.callbacks.early_stopping.EarlyStopping(
-        monitor="train_loss"
+        monitor="test_loss"
     )
 
     wandb_logger = WandbLogger(project="mlmodels", entity="brain-health")
 
-    wandb.init(project="mlmodels", entity="brain-health")
+    wandb.init(project="mlmodels", entity="brain-health",
+              settings=wandb.Settings(_disable_stats=True))
 
     trainer = pl.Trainer(
         max_epochs = EPOCHS,
@@ -161,29 +164,10 @@ if __name__ == '__main__':
         log_every_n_steps=10,
         callbacks=[early_stopping] #ImagePredictionLogger(samples)],
     )
+    
     trainer.logger._default_hp_metric = False
 
-    conv = monai.networks.blocks.Convolution(
-        dimensions=2,
-        in_channels=1,
-        out_channels=1,
-        adn_ordering="ADN",
-        act=("prelu", {"init": 0.2}),
-        dropout=0.1
-    )
-
-    cnn_to_mlp = torch.nn.Sequential(
-      torch.nn.Flatten(1, -1),
-      torch.nn.Linear(150*150, 32),
-      torch.nn.ReLU(),
-      torch.nn.Linear(32, 3),  
-      torch.nn.Softmax(dim=1)
-    )
-
-    NET = torch.nn.Sequential(
-        conv,
-        cnn_to_mlp
-    )
+    NET = ml_models.TestCNN()
 
     criterion = get_criterion()
     optimizer = get_optimizer(NET, CONFIG)
@@ -192,7 +176,7 @@ if __name__ == '__main__':
         net=NET,
         criterion= F.cross_entropy,
         learning_rate=LEARNING_RATE,
-        optimizer_class=torch.optim.AdamW,
+        optimizer_class=optimizer,
     )
     
     start = datetime.now()
@@ -200,4 +184,18 @@ if __name__ == '__main__':
     trainer.fit(model=model, datamodule=data)
     print('[INFO] Training duration:', datetime.now() - start)
 
+    
+    
+    wandb.log(
+    {#"roc": wandb.plot.roc_curve(np.array(y_true), np.array(y_proba), labels=class_names, classes_to_plot=None),
+     "learning_rate": LEARNING_RATE,
+     "epochs": EPOCHS,
+     "batch_size": BATCH_SIZE,
+     "transformer": TRANSFORMER,
+     "net": NET,
+     "criterion": CRITERION,
+     "optimizer": OPTIMIZER})
+    
+    
     print("[INFO] Finished Training")
+    wandb.finish()
