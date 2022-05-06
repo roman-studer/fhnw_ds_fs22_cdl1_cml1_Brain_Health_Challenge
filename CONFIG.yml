@@ -19,7 +19,9 @@ PLOT_DIR_BINARY:    "reports/plots/"
 DEVICE: "gpu"
 TRAIN_SIZE: 0.8
 LEARNING_RATE: 0.001
+AUTO_LEARNING_RATE: True
 BATCH_SIZE: 16
+AUTO_BATCH_SIZE: False #binsearch
 EPOCHS: 20
 NUM_WORKERS: 12 #don't set this to a higher number than train or test size
 TRANSFORMER: "Test"

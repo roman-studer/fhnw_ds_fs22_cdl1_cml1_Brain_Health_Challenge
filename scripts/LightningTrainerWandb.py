@@ -12,6 +12,7 @@ from data_loader import MRIDataset
 from loss_functions import get_optimizer, get_criterion
 import pytorch_lightning as pl
 from pytorch_lightning.loggers import WandbLogger
+from pytorch_lightning.callbacks import StochasticWeightAveraging
 import torchmetrics
 import monai
 from datetime import datetime
@@ -23,9 +24,11 @@ CONFIG = misc.get_config()
 
 DEVICE = CONFIG['DEVICE']
 LEARNING_RATE = CONFIG['LEARNING_RATE']
-BATCH_SIZE = 256#CONFIG['BATCH_SIZE']
-EPOCHS = 3#CONFIG['EPOCHS']
-NUM_WORKERS = 6#CONFIG['NUM_WORKERS']
+AUTO_LEARNING_RATE = CONFIG['AUTO_LEARNING_RATE'] #not used
+BATCH_SIZE = CONFIG['BATCH_SIZE']
+AUTO_BATCH_SIZE = CONFIG['AUTO_BATCH_SIZE'] #not used
+EPOCHS = CONFIG['EPOCHS']
+NUM_WORKERS = CONFIG['NUM_WORKERS']
 TRANSFORMER = CONFIG['TRANSFORMER']
 CRITERION = CONFIG['CRITERION']
 OPTIMIZER = CONFIG['OPTIMIZER']
@@ -55,10 +58,10 @@ class MRIDataModule(pl.LightningDataModule):
         self.val_set = MRIDataset(self.data_paths['val_dir'], transform=self.val_transform, dimension=DIMENSION, nslice=NSLICE)
 
     def train_dataloader(self):
-        return DataLoader(self.train_set, batch_size=BATCH_SIZE, num_workers=NUM_WORKERS, shuffle=True)
+        return DataLoader(self.train_set, batch_size=self.batch_size, num_workers=NUM_WORKERS, shuffle=True)
 
     def val_dataloader(self):
-        return DataLoader(self.val_set, batch_size=BATCH_SIZE, num_workers=NUM_WORKERS, shuffle=False)
+        return DataLoader(self.val_set, batch_size=self.batch_size, num_workers=NUM_WORKERS, shuffle=False)
 
 data = MRIDataModule(
     batch_size= BATCH_SIZE,
@@ -97,7 +100,6 @@ class Model(pl.LightningModule):
         loss = self.criterion(y_hat, y)
         self.log('train_loss', loss, prog_bar=True, on_epoch=True)
         
-        print(type(y_hat), type(y))
         self.train_acc(torch.argmax(y_hat, dim=1), torch.argmax(y, dim=1))
         self.log('train_acc', self.train_acc, prog_bar = True, on_epoch=True)
         
@@ -159,7 +161,10 @@ if __name__ == '__main__':
         logger = wandb_logger,
         precision=16,
         log_every_n_steps=10,
-        callbacks=[early_stopping] #ImagePredictionLogger(samples)],
+        callbacks=[early_stopping], #StochasticWeightAveraging(swa_lrs=1e-2)], #ImagePredictionLogger(samples)],
+        gradient_clip_val=0.5,
+        auto_scale_batch_size = AUTO_BATCH_SIZE,
+        auto_lr_find="lr"
     )
     trainer.logger._default_hp_metric = False
 
@@ -194,6 +199,17 @@ if __name__ == '__main__':
         learning_rate=LEARNING_RATE,
         optimizer_class=torch.optim.AdamW,
     )
+    trainer.tune(model, datamodule=data)
+    
+    if AUTO_LEARNING_RATE:
+        #not working yet:
+        """lr_finder = trainer.tuner.lr_find(model)
+
+        # Results can be found in
+        print(lr_finder.results)
+
+        # Pick point based on plot, or get suggestion
+        model.hparams.learning_rate = lr_finder.suggestion()"""
     
     start = datetime.now()
     print('[INFO] Training started at', start)
