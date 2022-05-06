@@ -115,29 +115,16 @@ DIMENSION = CONFIG['DIMENSION']
 NSLICE = CONFIG['NSLICE']
 WANDB_USER = CONFIG['WANDB_USER']
 
-conv = monai.networks.blocks.Convolution(
-    dimensions=2,
-    in_channels=1,
-    out_channels=1,
-    adn_ordering="ADN",
-    act=("prelu", {"init": 0.2}),
-    dropout=0.1
-)
-
-cnn_to_mlp = torch.nn.Sequential(
-  torch.nn.Flatten(1, -1),
-  torch.nn.Linear(150*150, 32),
-  torch.nn.ReLU(),
-  torch.nn.Linear(32, 3),  
-  torch.nn.Softmax(dim=1)
-)
 
 NET = torch.nn.Sequential(
     conv,
     cnn_to_mlp
 )
 
-wandb.init(project="mlmodels", entity="brain-health")
+
+
+wandb.init(project="mlmodels", entity="brain-health",
+          settings=wandb.Settings(_disable_stats=True))
 
 # wandb.init(project="mlmodels", entity=WANDB_USER,
 #          name=f'Net: {NET} Transf: {TRANSFORMER} Epochs: {EPOCHS}')
@@ -172,7 +159,7 @@ test_dataloader = DataLoader(test_data, batch_size=BATCH_SIZE, shuffle=True)
 criterion = get_criterion()
 optimizer = get_optimizer(net, CONFIG)
 
-wandb.watch(net, log="all")
+wandb.watch(net, log="parameters")
 
 print("[INFO] Started training")
 for epoch in range(EPOCHS):

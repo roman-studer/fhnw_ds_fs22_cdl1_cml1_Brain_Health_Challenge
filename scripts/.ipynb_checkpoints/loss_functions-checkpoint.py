@@ -7,4 +7,12 @@ def get_criterion():
     return nn.CrossEntropyLoss()
 
 def get_optimizer(net, config):
-    return optim.SGD(net.parameters(), lr=config['LEARNING_RATE'], momentum=0.9)
+    if config['OPTIMIZER'] == 'SGD':
+        return optim.SGD
+    elif config['OPTIMIZER'] == 'Adam':
+        return optim.Adam
+    elif config['OPTIMIZER'] == 'AdamW':
+        return optim.AdamW
+    
+    else:
+        print('[WARN] Unknown optimizter selected')

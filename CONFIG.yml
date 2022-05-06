@@ -14,8 +14,10 @@ PTDEMOG_DIR:        "data/tabular_data/tabular_data/PTDEMOG.csv"
 TRAIN_LABELS_DIR:   "data/annotations/train_labels.csv"
 TEST_LABELS_DIR:    "data/annotations/test_labels.csv"
 PLOT_DIR_BINARY:    "reports/plots/"
+SLICED_DATA_DIR:    "data/raw/slices/"
 
 # ml_settings
+MODEL: 'DenseNet121'
 DEVICE: "gpu"
 TRAIN_SIZE: 0.8
 LEARNING_RATE: 0.001
@@ -26,12 +28,13 @@ EPOCHS: 20
 NUM_WORKERS: 12 #don't set this to a higher number than train or test size
 TRANSFORMER: "Test"
 CRITERION: "CrossEntropy"
-OPTIMIZER: "SGD"
+OPTIMIZER: "Adam"
 WANDB_USER: "brain-health"
+DATA_LOADER: "slice" # "3d"
 
 IMAGE_WIDTH: 900 # image width after cropping
 IMAGE_HEIGHT: 900 # image height after cropping
-IMAGE_RESIZE: 32 # Baseline LeNet
+IMAGE_RESIZE: 256 # Baseline LeNet
 
 # for 2d slice selection
 DIMENSION: 1 # 1 = Tranversalebene, 2 = Frontalebene, 3 = Saggitalebene
