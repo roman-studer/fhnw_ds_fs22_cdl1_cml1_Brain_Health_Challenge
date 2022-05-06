@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 from matplotlib.lines import Line2D
 import torch.nn.functional as F
 import monai
+from monai.networks.nets import DenseNet121
 
 import sys
 sys.path.insert(0, '../scripts/')
@@ -28,6 +29,10 @@ def get_model():
         return LeNet()
     elif MODEL_NAME == 'BaselineNet':
         return BaselineNet()
+    elif MODEL_NAME == 'DenseNet121':
+        return DenseNet121(spatial_dims=2, in_channels=1, out_channels=3)
+    
+
     
     else:
         print('[WARN] Unknown model selected')

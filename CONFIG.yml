@@ -23,7 +23,7 @@ TRAIN_SIZE: 0.8
 LEARNING_RATE: 0.001
 BATCH_SIZE: 10
 EPOCHS: 1
-NUM_WORKERS: 8 #don't set this to a higher number than train or test size
+NUM_WORKERS: 1 #don't set this to a higher number than train or test size
 TRANSFORMER: "Crop"
 CRITERION: "CrossEntropy"
 OPTIMIZER: "Adam"
