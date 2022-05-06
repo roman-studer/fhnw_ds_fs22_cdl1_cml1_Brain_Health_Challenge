@@ -153,7 +153,7 @@ if __name__ == '__main__':
     samples = data.val_dataloader()
     
     early_stopping = pl.callbacks.early_stopping.EarlyStopping(
-        monitor="test_loss"
+        monitor="val_loss"
     )
 
     wandb_logger = WandbLogger(project="mlmodels", entity="brain-health")
