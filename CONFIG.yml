@@ -22,10 +22,10 @@ DEVICE: "gpu"
 TRAIN_SIZE: 0.8
 LEARNING_RATE: 0.001
 AUTO_LEARNING_RATE: True
-BATCH_SIZE: 16
+BATCH_SIZE: 128
 AUTO_BATCH_SIZE: False #binsearch
-EPOCHS: 20
-NUM_WORKERS: 12 #don't set this to a higher number than train or test size
+EPOCHS: 30
+NUM_WORKERS: 5 #don't set this to a higher number than train or test size
 TRANSFORMER: "Test"
 CRITERION: "CrossEntropy"
 OPTIMIZER: "Adam"
@@ -37,7 +37,7 @@ IMAGE_HEIGHT: 900 # image height after cropping
 IMAGE_RESIZE: 256 # Baseline LeNet
 
 # for 2d slice selection
-DIMENSION: 1 # 1 = Tranversalebene, 2 = Frontalebene, 3 = Saggitalebene
+DIMENSION: 2 # 1 = Tranversalebene, 2 = Frontalebene, 3 = Saggitalebene
 NSLICE: "Center" # 'Center' or Int, selects a slice (or center slice) for given dimension
 
 

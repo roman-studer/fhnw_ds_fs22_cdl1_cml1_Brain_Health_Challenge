@@ -1,4 +1,6 @@
 import wandb
+import os
+os.environ['KMP_DUPLICATE_LIB_OK']='True'
 import numpy as np
 from torch.utils.data import DataLoader
 import torch
@@ -173,7 +175,7 @@ if __name__ == '__main__':
         callbacks=[early_stopping], #StochasticWeightAveraging(swa_lrs=1e-2)], #ImagePredictionLogger(samples)],
         gradient_clip_val=0.5,
         #auto_scale_batch_size = AUTO_BATCH_SIZE,
-        auto_lr_find="lr"
+        #auto_lr_find="lr"
     )
     
     trainer.logger._default_hp_metric = False

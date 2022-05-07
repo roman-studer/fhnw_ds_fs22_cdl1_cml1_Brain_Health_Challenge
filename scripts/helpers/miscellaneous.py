@@ -75,6 +75,8 @@ def get_file_names(path: str, suffix: str = None, return_all: bool = False):
 def get_nii_filenames(path: str):
     return glob.glob('../../' + path + '**/*.nii', recursive=True)
 
+def get_png_filenames(path: str):
+    return glob.glob('../../' + path + '**/*.png', recursive=True)
 
 def get_nii(img_path):
     """
