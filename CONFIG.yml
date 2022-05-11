@@ -22,10 +22,10 @@ DEVICE: "gpu"
 TRAIN_SIZE: 0.8
 LEARNING_RATE: 0.001
 AUTO_LEARNING_RATE: True
-BATCH_SIZE: 128
+BATCH_SIZE: 32
 AUTO_BATCH_SIZE: False #binsearch
 EPOCHS: 30
-NUM_WORKERS: 5 #don't set this to a higher number than train or test size
+NUM_WORKERS: 6 #don't set this to a higher number than train or test size
 TRANSFORMER: "Test"
 CRITERION: "CrossEntropy"
 OPTIMIZER: "Adam"
@@ -34,7 +34,8 @@ DATA_LOADER: "slice" # "3d"
 
 IMAGE_WIDTH: 900 # image width after cropping
 IMAGE_HEIGHT: 900 # image height after cropping
-IMAGE_RESIZE: 256 # Baseline LeNet
+IMAGE_RESIZE1: 256 # Baseline LeNet
+IMAGE_RESIZE2: 256 # Baseline LeNet
 
 # for 2d slice selection
 DIMENSION: 2 # 1 = Tranversalebene, 2 = Frontalebene, 3 = Saggitalebene

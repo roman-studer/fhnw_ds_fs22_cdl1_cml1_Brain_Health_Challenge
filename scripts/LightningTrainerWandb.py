@@ -62,8 +62,8 @@ class MRIDataModule(pl.LightningDataModule):
 
     def setup(self, stage=None):
         loader = get_data_loader()
-        self.train_set = loader(self.data_paths['train_dir'], transform=self.train_transform, dimension=DIMENSION, nslice=NSLICE)
-        self.val_set = loader(self.data_paths['val_dir'], transform=self.val_transform, dimension=DIMENSION, nslice=NSLICE)
+        self.train_set = loader(self.data_paths['train_dir'], transform=None, dimension=DIMENSION, nslice=NSLICE)
+        self.val_set = loader(self.data_paths['val_dir'], transform=None, dimension=DIMENSION, nslice=NSLICE)
 
     def train_dataloader(self):
         return DataLoader(self.train_set, batch_size=self.batch_size, num_workers=NUM_WORKERS, shuffle=True)
@@ -171,9 +171,9 @@ if __name__ == '__main__':
         gpus=1,
         logger = wandb_logger,
         precision=16,
-        log_every_n_steps=2,
+        log_every_n_steps=50,
         callbacks=[early_stopping], #StochasticWeightAveraging(swa_lrs=1e-2)], #ImagePredictionLogger(samples)],
-        gradient_clip_val=0.5,
+        #gradient_clip_val=1,
         #auto_scale_batch_size = AUTO_BATCH_SIZE,
         #auto_lr_find="lr"
     )

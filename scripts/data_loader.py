@@ -169,7 +169,7 @@ class MRIDatasetSlice(Dataset):
         else:
             self.df.filename = self.df.filename.str.replace('flattened', f'slices/{nslice}/{dimension}', regex=True)
             
-        self.df.filename = self.df.filename.str.replace('.nii', f'.png', regex=True)
+        #self.df.filename = self.df.filename.str.replace('.nii', f'.png', regex=True)
 
     def __len__(self):
         """
@@ -186,18 +186,17 @@ class MRIDatasetSlice(Dataset):
         #switch case for each individual cognitive test?
         """test_results = self.test_results[["CDMEMORY", "CDORIENT", "CDJUDGE", "CDCOMMUN", "CDHOME", "CDCARE", "CDGLOBAL"]].sample(n=1)
         test_results = torch.from_numpy(test_results.to_numpy().astype(np.float32))"""
-        
-        try:
-            img = read_image("../" + self.df.iloc[idx].filename).float()
+        img = tio.ScalarImage("../" + self.df.iloc[idx].filename).data[:,:,:,0].float()
+        """try:
         except:
-            img = read_image("../../" + self.df.iloc[idx].filename).float()
+            img = read_image("../../" + self.df.iloc[idx].filename).float()"""
         
         #get image and caption by id
         label = self.df.iloc[idx].Group
         label = self.idx_to_label[label]
-                
+    
         if self.transform is not None:
-            img = self.transform(img)
-
+            img = self.transform(img.unsqueeze(dim=3))
+            img = img[:,:,:,0]
 
         return {"images": img, "labels": label } #, test_results
