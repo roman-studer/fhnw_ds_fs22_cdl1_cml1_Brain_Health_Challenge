@@ -20,9 +20,9 @@ SLICED_DATA_DIR:    "data/raw/slices/"
 MODEL: 'DenseNet121'
 DEVICE: "gpu"
 TRAIN_SIZE: 0.8
-LEARNING_RATE: 0.001
-BATCH_SIZE: 10
-EPOCHS: 1
+LEARNING_RATE: 0.0001
+BATCH_SIZE: 32
+EPOCHS: 20
 NUM_WORKERS: 1 #don't set this to a higher number than train or test size
 TRANSFORMER: "Crop"
 CRITERION: "CrossEntropy"
@@ -32,7 +32,7 @@ DATA_LOADER: "slice" # "3d"
 
 IMAGE_WIDTH: 900 # image width after cropping
 IMAGE_HEIGHT: 900 # image height after cropping
-IMAGE_RESIZE: 256 # Baseline LeNet
+IMAGE_RESIZE: 384 # Baseline LeNet
 
 # for 2d slice selection
 DIMENSION: 1 # 1 = Tranversalebene, 2 = Frontalebene, 3 = Saggitalebene
