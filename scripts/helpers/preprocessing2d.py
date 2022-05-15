@@ -36,7 +36,7 @@ def _test_transformer():
     return transforms.Compose([
         transforms.RescaleIntensity((-1, 1)),
         transforms.Resample((1,1,1)),
-        transforms.Resize((config['IMAGE_RESIZE'],config['IMAGE_RESIZE'], 1)),
+        transforms.Resize((config['IMAGE_RESIZE1'],config['IMAGE_RESIZE2'], 1)),
     ])
 
 # for 2d images
