@@ -103,8 +103,8 @@ class Model(pl.LightningModule):
         loss = self.criterion(y_hat, y)
         self.log('train_loss', loss, prog_bar=True, on_epoch=True)
         
-        self.train_acc(y_hat, y)
-        self.log('train_acc', self.train_acc, prog_bar = True, on_epoch=True)
+        acc = self.train_acc(y_hat, y)
+        self.log('train_acc', acc, prog_bar = True, on_epoch=True)
         
         return loss
     
@@ -115,7 +115,7 @@ class Model(pl.LightningModule):
         self.log('val_loss', loss, on_step=False, prog_bar=True, on_epoch=True)
         
         acc = self.val_acc(y_hat, y)
-        self.log('val_acc', self.val_acc, on_step=False, prog_bar = True, on_epoch=True)
+        self.log('val_acc', acc, on_step=False, prog_bar = True, on_epoch=True)
         
         return loss
     
@@ -179,7 +179,7 @@ if __name__ == '__main__':
 
     model = Model(
         net=NET,
-        criterion= F.cross_entropy,
+        criterion= criterion,
         learning_rate=LEARNING_RATE,
         optimizer_class=optimizer,
     )
