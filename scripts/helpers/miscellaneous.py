@@ -16,7 +16,20 @@ def get_config() -> dict:
         with open('../../CONFIG.yml', 'r') as f:
             c = yaml.safe_load(f)
         return c
+    except:
+        pass
 
+    try:
+        with open('../CONFIG.yml','r') as f:
+            c = yaml.safe_load(f)
+        return c
+    except:
+        pass
+
+    try:
+        with open('CONFIG.yml','r') as f:
+            c = yaml.safe_load(f)
+        return c
     except:
         raise FileNotFoundError(
             'Could not find CONFIG.yml file. Try importing it manually')
@@ -62,6 +75,8 @@ def get_file_names(path: str, suffix: str = None, return_all: bool = False):
 def get_nii_filenames(path: str):
     return glob.glob('../../' + path + '**/*.nii', recursive=True)
 
+def get_png_filenames(path: str):
+    return glob.glob('../../' + path + '**/*.png', recursive=True)
 
 def get_nii(img_path):
     """

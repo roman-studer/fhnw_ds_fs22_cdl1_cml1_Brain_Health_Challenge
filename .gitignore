@@ -10,3 +10,7 @@ notebooks/4_visualizations/.ipynb_checkpoints/*
 notebooks/5_miscellaneous/.ipynb_checkpoints/*
 
 *.pyc
+
+scripts/wandb/*
+scripts/mlruns/*
+mlruns/*
