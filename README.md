@@ -6,7 +6,7 @@ This semester we will focus on brain health. We will work on medical image class
 
 Each of you will gain experience with machine learning for image classification in the domain of medical imaging, as well as how to integrate visualizations in the process to better understand and explain the process (explainable artificial intelligence (XAI)).
 
-### Description of the diseas
+### Description of the disease
 Description of the Disease
 Human brain, just like any other part of human anatomy, loses some function as we age. Some of this is 'healthy aging', i.e., it happens to everybody. However, a relatively large percent of the aging population also experience cognitive decline that is more extreme than others. A milder version of this is called 'mild cognitive impairment' (MCI), where the person can mostly function. For some of the MCI patients, the disease is progressive, and leads to dementia (Alzheimer's disease is a form of dementia). In this project we have brain imaging, cognitive testing, and laboratory data from three groups of people: healthy-aging individuals ("healthy controls"), people with MCI and people with Alzheimer's disease (AD). AD is a crippling disease in its advanced stages that prevents normal interaction, retention of even the most prominent memories (names of close family members), and individuals with advanced AD must, in most cases, be institutionalized. It is one of the most common causes of death in modern times.
 
