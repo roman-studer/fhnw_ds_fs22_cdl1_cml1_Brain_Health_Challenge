@@ -115,7 +115,7 @@ class Model(pl.LightningModule):
     
     def validation_step(self, batch, batch_idx):
         y_hat, y = self.infer_batch(batch)
-
+        
         loss = self.criterion(y_hat, y)
         self.log('val_loss', loss, on_step=False, prog_bar=True, on_epoch=True)
         
@@ -126,9 +126,10 @@ class Model(pl.LightningModule):
     
     def validation_epoch_end(self, val_step_outputs):
         dummy_input = torch.zeros((1, 1, 150,150), device = device)
-        model_filename = "model_final.onnx"
-        torch.onnx.export(self.net.eval(), dummy_input, model_filename)
-        #wandb.save(model_filename)
+        model_filename = CONFIG['MODEL'] + "-DIM" + str(CONFIG["DIMENSION"])
+        torch.onnx.export(self.net.eval(), dummy_input, model_filename + "-model_final.onnx")
+        torch.save(self.net.state_dict(), model_filename + "-model_final.pt")
+        wandb.save(model_filename)
 
         
 #add XAI elements here for XAI after each epoch
@@ -172,7 +173,8 @@ if __name__ == '__main__':
         logger = wandb_logger,
         precision=16,
         log_every_n_steps=50,
-        callbacks=[early_stopping], #StochasticWeightAveraging(swa_lrs=1e-2)], #ImagePredictionLogger(samples)],
+        num_sanity_val_steps=0,
+        callbacks=[], #StochasticWeightAveraging(swa_lrs=1e-2)], #ImagePredictionLogger(samples)],
         #gradient_clip_val=1,
         #auto_scale_batch_size = AUTO_BATCH_SIZE,
         #auto_lr_find="lr"

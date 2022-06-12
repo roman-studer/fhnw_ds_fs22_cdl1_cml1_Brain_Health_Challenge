@@ -46,7 +46,7 @@ def _crop_transformer():
         [
             ScaleIntensity(),
             EnsureType(),
-            pytransforms.Resize((config['IMAGE_RESIZE'],config['IMAGE_RESIZE']))
+            pytransforms.Resize((config['IMAGE_RESIZE1'],config['IMAGE_RESIZE2']))
         ]
     )
 
@@ -58,6 +58,6 @@ def _crop_augment_transformer():
             transforms.CropOrPad((config['IMAGE_HEIGHT'], config['IMAGE_WIDTH'])),
             transforms.NormalizationTransform((0.0, 0.0, 0.0), (1.0, 1.0, 1.0)),
             pytransforms.AutoAugment(),
-            transforms.Resize(config['IMAGE_RESIZE']),
+            transforms.Resize((config['IMAGE_RESIZE1'],config['IMAGE_RESIZE2'])),
         ]
     )
