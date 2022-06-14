@@ -22,7 +22,7 @@ def get_model(model_name=None):
         MODEL_NAME = model_name
     
     if MODEL_NAME == 'TestCNN':
-        return TestCNN()
+        return TestCNN(CONFIG)
     elif MODEL_NAME == 'EncoderCNN':
         return EncoderCNN()
     elif MODEL_NAME == 'CognitiveTestMLP':
@@ -267,31 +267,48 @@ class BaselineNet(nn.Module):
     
 class TestCNN(nn.Module):
     
-    def __init__(self):
+    def __init__(self, CONFIG):
         super().__init__()
-        self.conv = monai.networks.blocks.Convolution(
-        dimensions=2,
-        in_channels=1,
-        out_channels=1,
-        adn_ordering="ADN",
-        act=("prelu", {"init": 0.2}),
-        dropout=0.1
+        
+        self.cnn_layers = nn.Sequential(
+            # Defining a 2D convolution layer
+            nn.Conv2d(1, 4, kernel_size=3, stride=1, padding=1),
+            nn.BatchNorm2d(4),
+            nn.ReLU(inplace=True),
+            nn.MaxPool2d(kernel_size=2, stride=2),
+            # Defining another 2D convolution layer
+            nn.Conv2d(4, 4, kernel_size=3, stride=1, padding=1),
+            nn.Dropout(0.4),
+            nn.BatchNorm2d(4),
+            nn.ReLU(inplace=True),
+            nn.MaxPool2d(kernel_size=2, stride=2),
         )
 
-        self.cnn_to_mlp = torch.nn.Sequential(
-          torch.nn.Flatten(1, -1),
-          torch.nn.Linear(150*150, 32),
-          torch.nn.ReLU(),
-          torch.nn.Linear(32, 3),  
-          torch.nn.Softmax(dim=1)
+        """self.linear_layers = nn.Sequential(
+            nn.Flatten(),
+            nn.Linear(65536, 3),
+            nn.Softmax(dim=1)
+        )"""
+        
+        self.cnn_to_mlp = nn.Sequential(
+          nn.Flatten(),
+          nn.Linear(16384, 512),
+          nn.ReLU(),
+          nn.Linear(512, 128),
+          nn.ReLU(),
+          nn.Linear(128, 3),  
+          nn.Softmax(dim=1)
         )
-
         
     def forward(self, x):
-        model = torch.nn.Sequential(
-            self.conv,
+        
+        print("x_shape: ", x.shape)
+        
+        model = nn.Sequential(
+            self.cnn_layers,
             self.cnn_to_mlp
         )
         
         return model(x)
+    
         

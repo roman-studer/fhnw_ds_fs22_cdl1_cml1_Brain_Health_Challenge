@@ -6,11 +6,11 @@ This semester we will focus on brain health. We will work on medical image class
 
 Each of you will gain experience with machine learning for image classification in the domain of medical imaging, as well as how to integrate visualizations in the process to better understand and explain the process (explainable artificial intelligence (XAI)).
 
-### Description of the diseas
+### Description of the disease
 Description of the Disease
-Human brain, just like any other part of human anatomy, loses some function as we age. Some of this is 'healthy aging', i.e., it happens to everybody. However, a relatively large percent of the aging population also experience cognitive decline that is more extreme than others. A milder version of this is called 'mild cognitive impairment' (MCI), where the person can mostly function. For some of the MCI patients, the disease is progressive, and leads to dementia (Alzheimer's disease is a form of dementia). In this project we have brain imaging, cognitive testing, and laboratory data from three groups of people: healthy-aging individuals ("healthy controls"), people with MCI and people with Alzheimer's disease (AD). AD is a crippling disease in its advanced stages that prevents normal interaction, retention of even the most prominent memories (names of close family members), and individuals with advanced AD must, in most cases, be institutionalized. It is one of the most common causes of death in modern times.
+Human brain, just like any other part of human anatomy, loses some function as we age. Some of this is 'healthy aging', i.e., it happens to everybody. However, a relatively large percent of the aging population also experience cognitive decline that is more extreme than others. A milder version of this is called 'mild cognitive impairment' (MCI), where the person can mostly still function independently. For some of the MCI patients, the disease is progressive, and leads to dementia (Alzheimer's disease is a form of dementia). In this project we examine brain imaging, cognitive testing, and laboratory data from three groups of people: healthy-aging individuals ("healthy controls"), people with MCI, and people with Alzheimer's disease (AD). AD is a crippling disease in its advanced stages that prevents normal interaction, retention of even the most prominent memories (names of close family members), and individuals with advanced AD must, in most cases, be institutionalized. It is one of the most common causes of death in modern times.
 
-Understanding memory / cognition related dysfunction, being able to detect, predict, and monitor brain health is a socially and economically relevant applied science issue. Any new insight that data science methods might bring will help towards developing solutions that can detect, predict and monitor brain health.
+Understanding memory / cognition related dysfunction, being able to detect, predict, and monitor brain health is a socially and economically relevant applied science issue. Any new insight that data science methods will help towards developing solutions that can detect, predict and monitor brain health.
 ### Dataset
 
 The ADNI data set contains of two main "types" of data:
@@ -18,7 +18,7 @@ The ADNI data set contains of two main "types" of data:
 
 2) Imaging data from MRI or other medical scanners.
 
-In 2010, ADNI contained a total of 819 subjects (229 normal control subjects, 398 subjects with mild cognitive impairment (MCI), and 192 subjects with mild Alzheimer's disease (AD)) (see 2010 article). Since then, the database grew much larger, and these numbers grow as more and more institutions join the effort and upload their datasets into the collection too.
+In 2010, ADNI contained a total of 819 subjects (229 normal control subjects, 398 subjects with mild cognitive impairment (MCI), and 192 subjects with mild Alzheimer's disease (AD)) (see 2010 article). Since then, the database grew much larger, and these numbers grow as more and more, as institutions join the effort and upload their datasets into the collection.
 
 ### Tasks
 #### Task 1: Discovering Relationships in Tabular Data
@@ -30,12 +30,12 @@ Create an interactive visualization environment and conduct exploratory data ana
 -- MoCA (Montreal Cognitive Assessment)
 -- NEUROBAT Neuropsychological Battery [ADNI1,GO,2,3]
 You can connect these tables as well as the imaging data by using the RID column (not to be confused with "ID"). More information is provided under "Linking Images and Tabular Data".
-Explore the relationships using unsupervised machine learning within the tabular data multiple observations e.g., based on clustering: Do MoCA / MMSE / CDR and NEUROBAT are similar in some cases? What are those cases? How do each test correlate with demographic variables? Which of the tests correlate strongest with the diagnosis outcomes?
+Explore the relationships using unsupervised machine learning within the tabular data multiple observations e.g., based on clustering: Are MoCA / MMSE / CDR and NEUROBAT similar in some cases? What are those cases? How does each test correlate with demographic variables? Which of the tests correlate the strongest with the diagnositic outcomes?
 Is there a relationship between GDSCALE (depression) and any of the measured variables (including demographics)?
-Is there a relationship between any of the observed variables and an MCI/AD diagnosis? If yes what is the degree of this correlation (in terms of effect size) and is it statistically significant based on t-test and analysis of variance (ANOVA)?
+Is there a relationship between any of the observed variables and an MCI/AD diagnosis? If yes, what is the degree of this correlation (in terms of effect size), and is it statistically significant based on t-test and analysis of variance (ANOVA)?
 Discuss your results with the international collaborator and your advisors, and document your findings
 #### Task 2: Making Sense of the Imaging Data
-Make an overview of the available image scans and check wether they were correctly assigned (class + gender) using the overview sheet.
+Make an overview of the available image scans and check whether they were correctly assigned (class + gender) using the overview sheet.
 Analyze and explore the provided image scans (#subjects, research groups, #visits per subject, age, gender, image axes, image formats, ...) and extract relevant 2D slices (axial, one or multiple per subject on interesting areas), see play notebook (needs permissions) in resources for data loading.
 Make sure you create data-science-sound datasets for your deep learning experiments.
 Classify the images using deep learning and binary classification (see DL notebook (needs permissions) and switchtube video in resources) into: healthy (CN) vs. unhealthy (MCI, AD)
@@ -48,12 +48,12 @@ Visualize the differences of two or three classes by using explainable artificia
 Discuss your results with the international collaborator and your advisors, and document your findings
 Optionally: classify the selected images using deep learning and multi-class classification into three classes: CN, AD, MCI
 Note: Venugopalan et al. 2021 reported that early MCI are similar to CN and late MCI are similar to AD; hence, you may also try splitting MCI subjects accordingly and  classify only AD vs. CN.
-Optionally: propose your own data analysis and ideas
+Optionally: propose your own data analysis and ideas.
 
 #### Task 3: Connecting the Findings from Imaging and Tabular Data
-Filter the data in the tabular datasets to match the imaging dataset and the observations recorded in tables
+Filter the data in the tabular datasets to match the imaging dataset and the observations recorded in tables.
 Link tabular data and results of the image analysis (agnostic / correlation driven, exploratory approach): i.e., which of the measures correlate strongly with the AD diagnosis, what are the patterns and anomalies for the two patient groups?
-Discuss your results with the international collaborator and document your findings
+Discuss your results with the international collaborator and document your findings.
 
 ## Project Structure
 ```
