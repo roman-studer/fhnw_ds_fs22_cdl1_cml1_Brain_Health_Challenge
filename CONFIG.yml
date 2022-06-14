@@ -2,6 +2,7 @@
 RAW_DATA_DIR:       "data/raw/"
 PROCESSED_DATA_DIR: "data/processed/"
 FLATTENED_DATA_DIR: "data/raw/flattened/" # contains all .nii files from RAW_DATA_DIR
+STRIPPED_DATA_DIR:  "data/stripped/" # contains skullstripped images
 SERIALIZED_MODELS:  "models/trained_models/"
 METRICS_DIR:        "models/trained_history/"
 ANNOTATIONS_DIR:    "data/annotations/"
@@ -15,32 +16,43 @@ TRAIN_LABELS_DIR:   "data/annotations/train_labels.csv"
 TEST_LABELS_DIR:    "data/annotations/test_labels.csv"
 PLOT_DIR_BINARY:    "reports/plots/"
 SLICED_DATA_DIR:    "data/raw/slices/"
+DATA_DIR_MODELS:    "../models/checkpoints/"
 
 # ml_settings
-MODEL: 'DenseNet121'
+STACKED: False
+MODEL: 'ResNet18'
+NAME: 'ResNet18_CV'
 DEVICE: "gpu"
 TRAIN_SIZE: 0.8
-LEARNING_RATE: 0.001
-AUTO_LEARNING_RATE: True
-BATCH_SIZE: 32
-AUTO_BATCH_SIZE: False #binsearch
+K_FOLDS: 4
+LEARNING_RATE: 0.002
+AUTO_LEARNING_RATE: False
+BATCH_SIZE: 12
+AUTO_BATCH_SIZE: None  #"binsearch" # None
+ACCUMULATE_GRAD_BATCHES: True
 EPOCHS: 30
 NUM_WORKERS: 1 #don't set this to a higher number than train or test size
-TRANSFORMER: "Crop"
-CRITERION: "CrossEntropy"
-OPTIMIZER: "Adam"
-WANDB_USER: "brain-health"
+TRANSFORMER: "Monai_Blur"
+CRITERION: "CrossEntropy" # "Focal Loss"
+OPTIMIZER: "AdamW"
+WANDB_USER: "brain-health" 
 DATA_LOADER: "slice" # "3d"
+SAVE_MODEL: True
+SCHEDULER: "ExponentialLR"
+N_TRIALS: 3
+LOG_MODEL: False
+PRETRAINED: False
+WEIGHT_DECAY: 0.15
 
 IMAGE_WIDTH: 900 # image width after cropping
 IMAGE_HEIGHT: 900 # image height after cropping
 
-IMAGE_RESIZE1: 256 # Baseline LeNet
-IMAGE_RESIZE2: 256 # Baseline LeNet
+IMAGE_RESIZE1: 224 # Baseline LeNet
+IMAGE_RESIZE2: 224 # Baseline LeNet
 
 # for 2d slice selection
-DIMENSION: 2 # 1 = Tranversalebene, 2 = Frontalebene, 3 = Saggitalebene
-NSLICE: "Center" # 'Center' or Int, selects a slice (or center slice) for given dimension
+DIMENSION: 3 #1 = Tranversalebene, 2 = Frontalebene, 3 = Saggitalebene
+NSLICE: "Stripped" # 'Center' or Int, selects a slice (or center slice) for given dimension, 'Triplan', 'Offset
 
 
 # plot settings
@@ -48,4 +60,4 @@ COLOR_SEQUENTIAL:   "bone" # matplotlib color map (used for heatmaps)
 COLOR_DISCRETE:     "Paired"  # matplotlib discrete set of colors (for statistical plots:  i.e. bar plots)
 
 # diverse
-RANDOM_STATE:       "42" # what else ;)
+RANDOM_STATE:       "12" # what else ;)

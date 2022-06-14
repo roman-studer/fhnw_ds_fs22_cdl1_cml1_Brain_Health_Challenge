@@ -5,13 +5,19 @@ import shutil
 import tqdm
 import glob
 from pathlib import Path
-
+import torch
 
 def get_config() -> dict:
     """
     Returns a dictionary of the config.yml file in root folder
     :return: dictionary of config.yml
     """
+    try:
+        with open('../../../CONFIG.yml', 'r') as f:
+            c = yaml.safe_load(f)
+        return c
+    except:
+        pass
     try:
         with open('../../CONFIG.yml', 'r') as f:
             c = yaml.safe_load(f)
@@ -98,3 +104,12 @@ def get_nii(img_path):
     """
     nimg = nib.load(img_path)
     return nimg.get_data(), nimg.affine, nimg.header
+
+def save_model(model, PATH):
+    torch.save(model.state_dict(), PATH)
+
+
+def load_model(model, PATH, NAME):
+    model.load_state_dict(torch.load(PATH+NAME))
+    model.eval()
+    return model
