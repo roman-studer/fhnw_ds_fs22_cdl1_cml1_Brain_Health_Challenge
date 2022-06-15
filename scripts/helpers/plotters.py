@@ -3,6 +3,25 @@ import numpy as np
 from matplotlib import pyplot as plt
 from matplotlib.ticker import (MultipleLocator, FormatStrFormatter)
 
+import sys
+
+sys.path.insert(0, '../../scripts/')
+
+from helpers import miscellaneous as m
+from helpers import preprocessing2d as prep
+from helpers import plotters
+from data_loader import MRIDatasetSlice
+from ml_models import get_model
+from loss_functions import get_optimizer, get_criterion
+import numpy as np
+from torchcam.methods import SmoothGradCAMpp
+from torchvision.transforms.functional import to_pil_image
+from torchcam.utils import overlay_mask
+
+
+
+CONFIG = m.get_config()
+MODEL_PATH = '../../models/'
 
 def plot_wrapper(plot_object, title, subtitle, xlabel, ylabel, xtick_rotation=None):
     """
@@ -295,3 +314,27 @@ def plot_prediction_distribution(experiment_path, title, y_true, y_pred):
     fig.tight_layout(rect=[0, 0, 1, 0.95])
 
     plt.savefig(experiment_path + '/%s_prediction_distribution' % (title))
+
+def grad_cam(model, target_layer, image, transformer_name=None):
+    if transformer_name:
+        transformer, _  = prep.get_transformer(transformer_name)
+
+        input_tensor = transformer(image)
+    elif transformer_name is None:
+        input_tensor = image
+
+    model = model.eval()
+
+    cam_extractor = SmoothGradCAMpp(model, target_layer=target_layer)
+
+
+    #input_tensor = input_tensor
+
+    out = model(input_tensor)
+    print(out)
+
+    activation_map = cam_extractor(out.squeeze(0).argmax().item(), out)
+
+    result = overlay_mask(to_pil_image(image), to_pil_image(activation_map[0].squeeze(0), mode='F'), alpha=0.5)
+    plt.figure(figsize=(8,8))
+    plt.imshow(result); plt.axis('off'); plt.tight_l

@@ -1,54 +1,109 @@
+import pandas as pd
 import wandb
 import torch
 import numpy as np
-from torch.utils.data import DataLoader
-import torch.nn.functional as F
-
+from torch.utils.data import DataLoader, ConcatDataset
+import uuid
 import sys
+import optuna
+from sklearn.model_selection import KFold
+import torch.optim as optim
 
 sys.path.insert(0, '../scripts/')
 from helpers import miscellaneous as misc
+from helpers import plotters as plot
 from helpers import preprocessing2d as prep
-from data_loader import MRIDataset
+from data_loader import get_data_loader
 from loss_functions import get_optimizer, get_criterion
-import monai
+from ml_models import get_model as get_net
 
-from sklearn.metrics import roc_curve
 
-# import model named as Net
-#from ml_models import LeNet as Net 
-#NET = 'LeNet'
 
-def nn_train(model, device, train_dataloader, optimizer, criterion, epoch, steps_per_epoch=20):
-    model.train()
+def nn_train(model, device, traindata, optimizer, criterion, epoch, scheduler, title):
 
-    train_loss = 0
-    train_total = 0
-    train_correct = 0
+    # test model
+    test_loss = 0
+    test_total = 0
+    test_correct = 0
 
-    for batch_idx, data in enumerate(train_dataloader, start=0):
-        data, target = data['images'].to(device), data['labels'].to(device)
+    y_true = []
+    y_pred = []
+    y_proba = None
 
-        optimizer.zero_grad()
+    kfold = KFold(n_splits=CONFIG['K_FOLDS'], shuffle=True)
 
-        output = model(data)
+    for fold, (train_ids, test_ids) in enumerate(kfold.split(traindata)):
+        model.train()
 
-        loss = criterion(output, target)
-        train_loss += loss.item()
-        
-        scores, predictions = torch.max(output.data, 1)
-        train_total += target.size(0)
-        predictions = F.one_hot(predictions, num_classes=3)
-        train_correct += (predictions*target).sum()
-        optimizer.zero_grad()
+        train_subsampler = torch.utils.data.SubsetRandomSampler(train_ids)
+        test_subsampler = torch.utils.data.SubsetRandomSampler(test_ids)
 
-        loss.backward()
-        optimizer.step()
-    acc = round(((train_correct / train_total) * 100).item(), 3)
-    print("Epoch [{}], Loss: {}, Accuracy: {}".format(epoch, train_loss / train_total, acc), end="")
-    wandb.log({"train_acc": acc})
-    wandb.log({"train_loss": train_loss})
-    wandb.log({"train_loss_ma": train_loss/train_total})
+        train_loader = DataLoader(traindata, batch_size=BATCH_SIZE, sampler=train_subsampler)
+        test_loader = DataLoader(traindata, batch_size=BATCH_SIZE, sampler=test_subsampler)
+
+        for batch_idx, (data, target) in enumerate(train_loader, start=0):
+            data, target = data.to(device), target.to(device)
+            
+            output = model(data)
+            if CRITERION == 'Focal Loss':
+                target_loss = torch.nn.functional.one_hot(target, num_classes=3)
+
+                loss = criterion(output, target_loss)
+            else:
+                loss = criterion(output, target)
+
+            optimizer.zero_grad()
+
+            loss.backward()
+
+            optimizer.step()
+
+        model.eval()
+        for batch_idx, (data, target) in enumerate(test_loader, start=0):
+
+            with torch.no_grad():
+                data, target = data.to(device), target.to(device)
+
+                outputs = model(data)
+                if CRITERION == 'Focal Loss':
+                    target_loss = torch.nn.functional.one_hot(target, num_classes=3)
+
+                    loss = criterion(outputs, target_loss)
+                else:
+                    loss = criterion(outputs, target)
+
+                test_loss += loss.item()
+
+                scores, predictions = torch.max(outputs.data, 1)
+                test_total += target.size(0)
+                test_correct += int(sum(predictions == target))
+
+                if y_proba is None:
+                    y_proba = outputs.cpu()
+                else:
+                    y_proba = np.vstack((y_proba, outputs.cpu()))
+
+                for i in target.tolist():
+                    y_true.append(i)
+                for j in predictions.tolist():
+                    y_pred.append(j)
+
+        scheduler.step()
+
+
+    acc = round((test_correct / test_total) * 100, 2)
+
+    torch.save({
+        'epoch': epoch,
+        'model_state_dict': model.state_dict(),
+        'optimizer_state_dict': optimizer.state_dict(),
+        'loss': test_loss/ test_total,
+        'acc': acc
+    }, CONFIG['DATA_DIR_MODELS'] + title + '_' + str(epoch))
+
+    print("Epoch [{}], Loss: {}, Accuracy: {}".format(epoch, test_loss / test_total, acc), end="")
+    wandb.log({"train_loss_epoch": test_loss / test_total, "train_acc_epoch": acc, "Epoch": epoch,
+               "learning_rate": scheduler.get_last_lr()[0]})
 
     return None
 
@@ -67,22 +122,28 @@ def nn_test(net, device, test_dataloader, criterion, classes, return_prediction=
 
     with torch.no_grad():
         for data in test_dataloader:
-            inputs, target = data['images'].to(device), data['labels'].to(device)
+            inputs, labels = data[0].to(device), data[1].to(device)
 
             outputs = net(inputs)
-            test_loss += criterion(outputs, target).item()
+            if CRITERION == 'Focal Loss':
+                target_loss = torch.nn.functional.one_hot(labels, num_classes=3)
+
+                loss = criterion(outputs, target_loss)
+            else:
+                loss = criterion(outputs, labels)
+
+            test_loss += loss.item()
 
             scores, predictions = torch.max(outputs.data, 1)
-            predictions = F.one_hot(predictions, num_classes=3)
-            test_total += target.size(0)
-            test_correct += (predictions*target).sum()
+            test_total += labels.size(0)
+            test_correct += int(sum(predictions == labels))
 
             if y_proba is None:
-                y_proba = outputs
+                y_proba = outputs.cpu()
             else:
-                y_proba = np.vstack((y_proba.cpu(), outputs.cpu()))
+                y_proba = np.vstack((y_proba, outputs.cpu()))
 
-            for i in target.tolist():
+            for i in labels.tolist():
                 y_true.append(i)
             for j in predictions.tolist():
                 y_pred.append(j)
@@ -90,23 +151,26 @@ def nn_test(net, device, test_dataloader, criterion, classes, return_prediction=
     if return_prediction:
         return y_true, y_pred, y_proba
 
-    acc = round(((test_correct / test_total) * 100).item(), 3)
+    acc = round((test_correct / test_total) * 100, 2)
     print(" Test_loss: {}, Test_accuracy: {}".format(test_loss / test_total, acc))
-    wandb.log({"test_acc": acc})
-    wandb.log({"test_loss": test_loss})
-    wandb.log({"test_loss_ma": test_loss/test_total})
+    wandb.log({"val_loss": test_loss / test_total, "val_acc": acc,
+               })
 
-    return None
+    return acc
+
 
 CONFIG = misc.get_config()
 
 DEVICE = CONFIG['DEVICE']
 LEARNING_RATE = CONFIG['LEARNING_RATE']
-BATCH_SIZE = 256#CONFIG['BATCH_SIZE']
-EPOCHS = 30#CONFIG['EPOCHS']
+BATCH_SIZE = CONFIG['BATCH_SIZE']
+EPOCHS = CONFIG['EPOCHS']
 TRANSFORMER = CONFIG['TRANSFORMER']
+NET = CONFIG['MODEL']
 CRITERION = CONFIG['CRITERION']
 OPTIMIZER = CONFIG['OPTIMIZER']
+SAFE_MODEL = CONFIG['SAVE_MODEL']
+SCHEDULER = CONFIG['SCHEDULER']
 TRAIN_SET = '../' + CONFIG['TRAIN_LABELS_DIR']
 TEST_SET = '../' + CONFIG['TEST_LABELS_DIR']
 RAW_DATA = '../' + CONFIG['FLATTENED_DATA_DIR']
@@ -114,76 +178,114 @@ PLOT_DIR = '../' + CONFIG['PLOT_DIR_BINARY']
 DIMENSION = CONFIG['DIMENSION']
 NSLICE = CONFIG['NSLICE']
 WANDB_USER = CONFIG['WANDB_USER']
-
-
-NET = torch.nn.Sequential(
-    conv,
-    cnn_to_mlp
-)
+DATA_LOADER = CONFIG['DATA_LOADER']
 
 
 
-wandb.init(project="mlmodels", entity="brain-health",
-          settings=wandb.Settings(_disable_stats=True))
 
-# wandb.init(project="mlmodels", entity=WANDB_USER,
-#          name=f'Net: {NET} Transf: {TRANSFORMER} Epochs: {EPOCHS}')
-
-wandb.define_metric("acc", summary="max")
-wandb.define_metric("loss", summary="min")
-
-wandb.config = {
-    "learning_rate": LEARNING_RATE,
-    "epochs": EPOCHS,
-    "batch_size": BATCH_SIZE,
-    "transformer": TRANSFORMER,
-    "net": NET,
-    "criterion": CRITERION,
-    "optimizer": OPTIMIZER
-}
+def objective(trial):
+    ID = str(uuid.uuid4())
+    NET_NAME = f'Net: {NET} Transf: {TRANSFORMER} Epochs: {EPOCHS}_ID:{ID}'
 
 
-class_names = ['CN', 'MCI', 'AD']
+    LEARNING_RATE = trial.suggest_float('learning rate', 0.0001, 0.003)
+    TITLE = CONFIG['NAME'] + f'_LR{LEARNING_RATE}_CR{CRITERION}_TR{TRANSFORMER}_OP{OPTIMIZER}_BS{BATCH_SIZE}_EP{EPOCHS}__ID_{ID}'
 
-device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
+    wandb.init(project="mlmodels", entity="brain-health", dir='../models/',
+               name=NET_NAME,
+               settings=wandb.Settings(_disable_stats=True))
 
-net = NET.to(device)
-test_transform, train_transform = prep.get_transformer(TRANSFORMER)
+    wandb.define_metric("acc", summary="max")
+    wandb.define_metric("loss", summary="min")
 
-train_data = MRIDataset(dataset_path=TRAIN_SET, transform=train_transform, dimension=DIMENSION, nslice=NSLICE)
-test_data = MRIDataset(dataset_path=TEST_SET, transform=test_transform, dimension=DIMENSION, nslice=NSLICE)
+    wandb.config = {
+        "learning_rate": LEARNING_RATE,
+        "epochs": EPOCHS,
+        "batch_size": BATCH_SIZE,
+        "transformer": TRANSFORMER,
+        "net": NET,
+        "criterion": CRITERION,
+        "optimizer": OPTIMIZER,
+        "image_size": CONFIG['IMAGE_RESIZE1']
+    }
 
-train_dataloader = DataLoader(train_data, batch_size=BATCH_SIZE, shuffle=True)
-test_dataloader = DataLoader(test_data, batch_size=BATCH_SIZE, shuffle=True)
-
-criterion = get_criterion()
-optimizer = get_optimizer(net, CONFIG)
-
-wandb.watch(net, log="parameters")
-
-print("[INFO] Started training")
-for epoch in range(EPOCHS):
-    nn_train(net, device, train_dataloader, optimizer, criterion, epoch)
-    nn_test(net, device, test_dataloader, criterion, class_names)
+    class_names = ['CN', 'MCI', 'AD']
 
 
-y_true, y_pred, y_proba = nn_test(net, device, test_dataloader, criterion, class_names, return_prediction=True)
-    
-y_true = torch.as_tensor(y_true)
-y_pred = torch.as_tensor(y_pred)
+    device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
+    print(f'[INFO] Using {device} for training')
 
-print(np.array(torch.max(y_true,1)[1].cpu()), np.array(torch.max(y_pred,1)[1].cpu()))
+    net = get_net().to(device)
+    test_transform, train_transform = prep.get_transformer(TRANSFORMER)
 
-#roc throws "IndexError: too many indices for array: array is 1-dimensional, but 2 were indexed"
-wandb.log(
-    {#"roc": wandb.plot.roc_curve(y, scores, labels=class_names, classes_to_plot=None), 
-     "learning_rate": LEARNING_RATE,
-     "epochs": EPOCHS,
-     "batch_size": BATCH_SIZE,
-     "transformer": TRANSFORMER,
-     "net": NET,
-     "criterion": CRITERION,
-     "optimizer": OPTIMIZER})
+    loader = get_data_loader()
+    train_data = loader(TRAIN_SET, transform=train_transform, dimension=DIMENSION, nslice=NSLICE)
+    test_data = loader(TEST_SET, transform=test_transform,  dimension=DIMENSION, nslice=NSLICE)
 
-print("[INFO] Finished Training")
-wandb.finish()
+    test_dataloader = DataLoader(test_data, batch_size=BATCH_SIZE, shuffle=True)
+
+    criterion = get_criterion(CONFIG)
+    optimizer = get_optimizer(net, CONFIG)
+
+    if CONFIG['LOG_MODEL']:
+        wandb.watch(net, log="parameters")
+
+    if SCHEDULER == "ExponentialLR" or SCHEDULER is None:
+            scheduler = optim.lr_scheduler.ExponentialLR(optimizer, gamma=0.99)
+
+
+    print(f'[INFO] Optimizer: {OPTIMIZER}, learning rate: {LEARNING_RATE}, batch size: {BATCH_SIZE}')
+
+    print('[INFO] Started Training')
+
+    best_test_acc = 0
+
+    for epoch in range(EPOCHS):
+        nn_train(net, device, train_data, optimizer, criterion, epoch, scheduler, TITLE)
+        test_acc = nn_test(net, device, test_dataloader, criterion, class_names)
+
+        if test_acc >= best_test_acc:
+            best_test_acc = test_acc
+
+        trial.report(test_acc, epoch)
+
+        # Handle pruning based on the test accuracy
+        #if trial.should_prune():
+        #    raise optuna.TrialPruned()
+
+    y_true, y_pred, y_proba = nn_test(net, device, test_dataloader, criterion, class_names, return_prediction=True)
+    wandb.log(
+        {#"roc": wandb.plot.roc_curve(np.array(y_true), np.array(y_proba), labels=class_names, classes_to_plot=None),
+         "learning_rate": LEARNING_RATE,
+         "epochs": EPOCHS,
+         "batch_size": BATCH_SIZE,
+         "transformer": TRANSFORMER,
+         "net": NET,
+         "criterion": CRITERION,
+         "optimizer": OPTIMIZER,
+         "image_size": CONFIG['IMAGE_RESIZE1'],
+         "pretrained": CONFIG['PRETRAINED']})
+
+
+    if SAFE_MODEL:
+        print(f"[INFO] Saved model to models/ with name Net: {NET} Transf: {TRANSFORMER} Epochs: {EPOCHS}")
+        
+        torch.save({
+            'epoch': epoch,
+            'model_state_dict': net.state_dict(),
+            'optimizer_state_dict': optimizer.state_dict(),
+            'acc': best_test_acc,
+            }, f'../models/{TITLE}.pth')
+        
+    print("[INFO] Finished Training")
+    wandb.finish()
+
+    if device == 'cuda:o':
+        torch.cuda.empty_cache()
+
+    return best_test_acc
+
+
+study = optuna.create_study(direction='maximize',
+                            pruner=optuna.pruners.MedianPruner)
+study.optimize(objective, n_trials=CONFIG['N_TRIALS'])
